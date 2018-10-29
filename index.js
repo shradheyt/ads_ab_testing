@@ -41,33 +41,49 @@ function NORMDIST(x, mean, sd, cumulative) {
   }
 
 /*
-
+  return true if ad wins by 95% win
 */
 function isWinner(splitA, splitB) {
     var ad1 = splitA;
     var ad2 = splitB;
 
+    //calculate click through rate of control split
     var CTR1 = getClickThroughRate(ad1);
+    //calculate click through rate of experimental split
     var CTR2 = getClickThroughRate(ad2);
 
+    //calculate standard deviation of control split
     var SD1 = getStandardDeviation(ad1, CTR1);
+    //calculate standard deviation of experimental split
     var SD2 = getStandardDeviation(ad2, CTR2);
 
+    //calculate z score
     var z_Score = (CTR1 - CTR2) / (Math.sqrt(Math.pow(SD1, 2) + Math.pow(SD2, 2)));
+
+    //caclulate normal distribution score
     var P_Value = NORMDIST(z_Score, 0, 1, true);
+
+    //Confidence interval according to 95% confidence level (Got the data from internet, didn't compute)
     if(P_Value < 0.05 || P_Value > 0.95) {
         return true;
     } else return false;
 }
-
+/*
+    get click through rate of an ad
+*/
 function getClickThroughRate(ad) {
     return ad.Clicks/ad.Impressions;
 }
 
+/*
+    get standard deviation
+*/
 function getStandardDeviation(ad, clickThroughRate) {
     return Math.sqrt( clickThroughRate * ( 1 - clickThroughRate ) / ad.Impressions );
 }
-
+/*
+    parse tsv data so we can group them by ad group id
+*/
 function parseResponse(response, column) {
     response = JSON.parse(JSON.stringify(response));
     var count = 0;
@@ -103,6 +119,9 @@ function parseResponse(response, column) {
     return featureList;
   }
 
+/*
+  convert the grouped data back in normal TSV form
+*/
   function convertToNormalTSV(response, column) {
     var newTSV = [];
     while(response.length !== 0) {
@@ -120,8 +139,13 @@ function parseResponse(response, column) {
     fs.writeFileSync('./resources/AdWinnerLoser.tsv', d3.tsvFormat(newTSV), 'ucs2');
   }
 
-
-
+/*
+  do A/B test on the grouped data
+  In an ad group, one ad is taken as control split and other one as experimental split
+  Ex.if an ad group has 3 ads. We will have loop for all 3 ads and for every add we will take other ads as experimental split.
+     If an ad is winner (3 - 1)= 2 times and it is actually 'WINNER' otherwise 'LOSER'.
+  If an ad group has only one ad, its 'NO_RESULT'
+*/
 function doABTest(response) {
     response = JSON.parse(JSON.stringify(response));
     
