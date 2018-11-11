@@ -132,7 +132,7 @@ function parseResponse(response, column) {
             tempObj[column[1]] = obj.ads[i][column[1]];
             // tempObj[column[2]] = obj.ads[i][column[2]];
             // tempObj[column[3]] = obj.ads[i][column[3]];
-            tempObj['Result'] = obj['Result'];
+            tempObj['Result'] = obj.ads[i]['Result'];
             newTSV.push(tempObj);
         }
     }
@@ -150,27 +150,36 @@ function doABTest(response) {
     response = JSON.parse(JSON.stringify(response));
     
     for(var i = 0;i < response.length;i++) {
+        var ifAnyWinner = false;
         if(response[i].ads.length === 1) {
-            response[i]['Result'] = 'NO_RESULT';
+            response[i].ads[0]['Result'] = 'NO_RESULT';
         } else {
             for(var firstSplit = 0;firstSplit < response[i].ads.length;firstSplit++) {
                 var winnerCount = 0;
                 for(var experimentalSplit = 0;experimentalSplit < response[i].ads.length;experimentalSplit++) {
                     if(firstSplit === experimentalSplit) continue;
-                    if(isWinner(response[i].ads[firstSplit], response[i].ads[experimentalSplit])) winnerCount++;
+                    if(isWinner(response[i].ads[firstSplit], response[i].ads[experimentalSplit])) {
+                        winnerCount++;
+                        console.log(JSON.stringify(response[i].ads[firstSplit]) + "  " + JSON.stringify(response[i].ads[experimentalSplit]));
+                    }
                 }
-                if(winnerCount === response[i].ads.length - 1) {
-                    response[i]['Result'] = 'WINNER';
-                } else {
-                    response[i]['Result'] = 'LOSER';
+                console.log(winnerCount + "  " + (response[i].ads.length - 1));
+                // By Default it will be "LOSER".
+                //response[i].ads[firstSplit]['Result'] = 'LOSER';
+                if(winnerCount === (response[i].ads.length - 1)) {
+                    ifAnyWinner = true;
+                    response[i].ads[firstSplit]['Result'] = 'WINNER';
+                 } else {
+                    response[i].ads[firstSplit]['Result'] = 'LOSER';
+                 }            
+            }
+            if(!ifAnyWinner) {
+                for(var firstSplit = 0;firstSplit < response[i].ads.length;firstSplit++) {
+                    response[i].ads[firstSplit]['Result'] = 'NO_RESULT';
                 }
             }
+            
         }
     }
     return response;
 }
-
-
-  
-  
-  
