@@ -130,8 +130,6 @@ function parseResponse(response, column) {
             var tempObj = {};
             tempObj[column[0]] = obj['Ad group ID'];
             tempObj[column[1]] = obj.ads[i][column[1]];
-            // tempObj[column[2]] = obj.ads[i][column[2]];
-            // tempObj[column[3]] = obj.ads[i][column[3]];
             tempObj['Result'] = obj.ads[i]['Result'];
             newTSV.push(tempObj);
         }
@@ -164,8 +162,7 @@ function doABTest(response) {
                     }
                 }
                 console.log(winnerCount + "  " + (response[i].ads.length - 1));
-                // By Default it will be "LOSER".
-                //response[i].ads[firstSplit]['Result'] = 'LOSER';
+            
                 if(winnerCount === (response[i].ads.length - 1)) {
                     ifAnyWinner = true;
                     response[i].ads[firstSplit]['Result'] = 'WINNER';
